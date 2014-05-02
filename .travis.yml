@@ -23,18 +23,16 @@ install:
   - composer global require drush/drush:6.*
 
 before_script:
-  # navigate out of module directory to prevent blown stack by recursive module lookup
-  - cd ../..
 
   # create new site, stubbing sendmail path with true to prevent delivery errors and manually resolving drush path
   - mysql -e 'create database travis_ci_hotsaucse'
-  - php -d sendmail_path=`which true`
-  - ~/.composer/vendor/bin/drush.php site-install --db-url=mysql://root:@127.0.0.1/travis_ci_hotsaucse --profile=hotsauce
+  - ~/.composer/vendor/bin/drush.php site-install -y --db-url=mysql://root:@127.0.0.1/travis_ci_hotsaucse --profile=hotsauce
 
 
   - drush --yes pm-enable simpletest
 
   # start a web server on port 8080, run in the background; wait for initialization
+  - drush runserver 127.0.0.1:8080 &
   - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
 
 script: drush test-run --all --uri=http://127.0.0.1:8080
